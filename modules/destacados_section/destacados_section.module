@@ -1,0 +1,142 @@
+<?php
+
+/**
+ *@file
+ *article.module
+ *
+ */
+function destacados_section_block_info(){
+  // This example comes from node.module.
+  $blocks['articles'] = array(
+    'info' => t('Destacados Section Module'),
+  );
+
+  return $blocks;
+}
+
+function destacados_section_block_view($delta = '') {
+  // This example is adapted from node.module.
+  $block = array();
+
+  switch ($delta) {
+    case 'articles':
+    Global $base_url;
+    $url_site = "http://".$_SERVER['HTTP_HOST'];
+
+    $destacados = array();
+    
+    $query = "SELECT A.nid, A.vid, A.uid, A.type, A.status, A.title, B.entity_id, B.field_visited_value, C.field_home_display_value 
+      FROM {node} A 
+      LEFT JOIN {field_data_field_visited} B ON A.nid = B.entity_id 
+      LEFT JOIN {field_data_field_home_display} C ON A.nid = C.entity_id 
+      WHERE A.status = 1
+      AND A.type = :type 
+      AND C.field_home_display_value = 1 
+      ORDER BY B.field_visited_value DESC LIMIT 3";
+    $destacado = db_query($query, array(':type' => 'articulo'))->fetchAll();
+    // print_r("destacado! -> ");
+    // print_r($destacado);
+
+    for($i = 0; $i < 3; $i++){
+      if($destacado[$i]->nid){
+        
+        $a_id = $destacado[$i]->nid;
+
+        // Execute queries to get slide info: image, title and description.
+        if (is_numeric($a_id)){
+          // Define: node id.
+          $d_id = $a_id;
+
+          // Get: Image.
+          $image = db_query("SELECT entity_id, revision_id, field_image_profile_fid 
+              FROM {field_data_field_image_profile} 
+              WHERE entity_id = :eid", array(':eid' => $a_id))->fetchObject();
+
+          $i_fid = $image->field_image_profile_fid;
+          if (is_numeric($i_fid)){
+            $image_profile_file = db_query("SELECT fid, uid, filename 
+                FROM {file_managed} 
+                WHERE fid = :fid", array(':fid' => $i_fid))->fetchObject();
+            $image_file = $image_profile_file->filename;
+          }
+          else{
+            $image_file = "gente.png"; //default image 
+          }
+
+          // Get: Title.
+          $query = "SELECT A.nid, A.vid, A.uid, A.type, A.status, A.title, B.entity_id, B.field_title_value 
+            FROM {node} A 
+            INNER JOIN {field_data_field_title} B ON A.nid = B.entity_id 
+            WHERE B.entity_id = :e_id";
+          $title_field = db_query($query, array(':e_id' => $a_id))->fetchObject();
+          $title = $title_field->title;
+          
+          // Get: Description.
+          $query = "SELECT A.nid, A.vid, A.uid, A.type, A.status, B.entity_id, B.field_description_value 
+            FROM {node} A 
+            INNER JOIN {field_data_field_description} B ON A.nid = B.entity_id 
+            WHERE B.entity_id = :e_id";
+          $description_field = db_query($query, array(':e_id' => $a_id))->fetchObject();
+          $description = $description_field->field_description_value;
+        }
+        else{
+          $d_id = 6;
+          $image_file = "gente.png"; //default image 
+          $title = "No title"; //default title
+          $description = "No description"; //default description
+        }        
+      }
+      else{
+        $d_id = 6;
+        $image_file = "gente.png";
+        $title = "No title";
+        $description = "No description";
+      }
+
+      $destacados[$i]->id = $d_id;
+      $destacados[$i]->num = $i;
+
+      $image_url = '"'.$base_url.'/sites/default/files/'.$image_file.'"';
+      $destacados[$i]->image_name = $image_file;
+      $destacados[$i]->image_url  = $image_url;
+      
+      $destacados[$i]->title = $title;
+
+      $destacados[$i]->description = $description;
+    }
+
+    // Get current path
+    $path = current_path();
+    if($path == "node/6"){
+
+      $section = "
+      <div class='destacados_section'>
+        <div class='destacados_title'> 
+          <p> Destacados </p>
+        </div>
+        <div class='destacados_container'>";
+
+      foreach ($destacados as $des) {
+        // Link: Redirect to HOME if the article validation is empty.
+        $section .= "
+          <a href='".$url_site."/node/".$des->id."'>
+            <div class='destacados_content ".$des->title."'> 
+              <p class='destacados_content_title'> ".$des->title." </p>
+              <div class='destacados_content_image' style='background-image: url(".$des->image_url.");'> </div>
+              <p class='destacados_content_description'> ".$des->description." </p>
+              <div class='destacados_content_separator num_".$des->num."'></div>
+            </div>
+          </a>";
+      }
+
+      $section .= "
+        </div>
+      </div>";
+
+      $block['subject'] = t(''); //This is destacados Section Block
+      $block['content'] = $section;
+    }
+      break;
+  }
+  return $block;
+}

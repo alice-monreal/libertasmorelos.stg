@@ -1,0 +1,149 @@
+<?php
+
+/**
+ *@file
+ *article.module
+ *
+ */
+function miscelaneas_section_block_info(){
+  // This example comes from node.module.
+  $blocks['articles'] = array(
+    'info' => t('Miscelaneas Section Module'),
+  );
+
+  return $blocks;
+}
+
+function miscelaneas_section_block_view($delta = '') {
+  // This example is adapted from node.module.
+  $block = array();
+
+  switch ($delta) {
+    case 'articles':
+    Global $base_url;
+    $url_site = "http://".$_SERVER['HTTP_HOST'];
+
+    $miscelaneas = array();
+    $miscelaneasTitles = array(0 => "ejecutivo", 1 => "legislativo", 2 => "judicial");
+    // print_r("miscelaneasTitles: ");
+    // print_r($miscelaneasTitles);
+
+    $clasification = 91;
+    $articles = db_query("SELECT A.nid, A.vid, A.uid, A.type, A.status, A.title, B.entity_id, B.field_categories_value, C.field_home_display_value
+                          FROM {node} A
+                          LEFT JOIN {field_data_field_categories} B ON A.nid = B.entity_id 
+                          LEFT JOIN {field_data_field_home_display} C ON A.nid = C.entity_id
+                          WHERE A.status = 1
+                          AND A.type = :type 
+                          AND C.field_home_display_value = 1
+                          AND B.field_categories_value like '%".$clasification."%' 
+                          ORDER BY nid DESC LIMIT 2", 
+                          array(':type' => 'articulo'))->fetchAll();
+
+    for($i = 0; $i < 2; $i++){
+      if($articles[$i]->nid){
+        
+        $a_id = $articles[$i]->nid;
+
+        // Execute queries to get slide info: image, title and description.
+        if (is_numeric($a_id)){
+          // Define: node id.
+          $d_id = $a_id;
+
+          // Get: Image.
+          $image = db_query("SELECT entity_id, revision_id, field_image_profile_fid 
+              FROM {field_data_field_image_profile} 
+              WHERE entity_id = :eid", array(':eid' => $a_id))->fetchObject();
+
+          $i_fid = $image->field_image_profile_fid;
+          if (is_numeric($i_fid)){
+            $image_profile_file = db_query("SELECT fid, uid, filename 
+                FROM {file_managed} 
+                WHERE fid = :fid", array(':fid' => $i_fid))->fetchObject();
+            $image_file = $image_profile_file->filename;
+          }
+          else{
+            $image_file = "gente.png"; //default image 
+          }
+
+          // Get: Title.
+          $query = "SELECT A.nid, A.vid, A.uid, A.type, A.status, A.title, B.entity_id, B.field_title_value 
+            FROM {node} A 
+            INNER JOIN {field_data_field_title} B ON A.nid = B.entity_id 
+            WHERE B.entity_id = :e_id";
+          $title_field = db_query($query, array(':e_id' => $a_id))->fetchObject();
+          $title = $title_field->title;
+          
+          // Get: Description.
+          $query = "SELECT A.nid, A.vid, A.uid, A.type, A.status, B.entity_id, B.field_description_value 
+            FROM {node} A 
+            INNER JOIN {field_data_field_description} B ON A.nid = B.entity_id 
+            WHERE B.entity_id = :e_id";
+          $description_field = db_query($query, array(':e_id' => $a_id))->fetchObject();
+          $description = $description_field->field_description_value;
+        }
+        else{
+          $d_id = 6;
+          $image_file = "gente.png"; //default image 
+          $title = "No title"; //default title
+          $description = "No description"; //default description
+        }        
+      }
+      else{
+        $d_id = 6;
+        $image_file = "gente.png";
+        $title = "No title";
+        $description = "No description";
+      }
+
+      $miscelaneas[$i]->id = $d_id;
+      $miscelaneas[$i]->num = $i;
+
+      $image_url = '"'.$base_url.'/sites/default/files/'.$image_file.'"';
+      $miscelaneas[$i]->image_name = $image_file;
+      $miscelaneas[$i]->image_url  = $image_url;
+      
+      $miscelaneas[$i]->title = $title;
+
+      $miscelaneas[$i]->description = $description;
+    }
+
+    // Get current path
+    $path = current_path();
+    if($path == "node/6"){
+
+      $section = "
+      <div class='miscelaneas_section'>
+        <div class='miscelaneas_title'> 
+          <p> Miscelanea </p>
+        </div>
+        <div class='miscelaneas_container'>";
+
+      foreach ($miscelaneas as $miscelanea) {
+        // Link: Redirect to HOME if the article validation is empty.
+        $section .= "
+          <a href='".$url_site."/node/".$miscelanea->id."'>
+            <div class='miscelaneas_content ".$miscelanea->title."'>
+              <div class='miscelaneas_content_image' style='background-image: url(".$miscelanea->image_url.");'> </div>
+              <div class='miscelaneas_content_info'>
+                <p class='miscelaneas_content_title'> ".$miscelanea->title." </p>              
+                <p class='miscelaneas_content_description'> ".$miscelanea->description." </p>
+              </div>
+              
+            </div>
+          </a>
+          <div class='miscelaneas_content_separator'></div>";
+      }
+
+      $section .= "
+          <a class='miscelaneas_content_see_more' href='".$url_site."'> ver m&aacute;s... </a>
+        </div>
+      </div>";
+
+      $block['subject'] = t(''); //This is miscelaneas Section Block
+      $block['content'] = $section;
+    }
+      break;
+  }
+  return $block;
+}
