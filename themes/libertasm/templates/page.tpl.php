@@ -86,6 +86,7 @@
  */
 
 $url_site = "http://".$_SERVER['HTTP_HOST'];
+$path_site = $_SERVER['REQUEST_URI'];
 ?>
 
 
@@ -655,6 +656,67 @@ $url_site = "http://".$_SERVER['HTTP_HOST'];
         }
         else{
           print render($page['content']);
+
+          // Add article
+          // print_r('path site');
+          // print_r($path_site);
+          $a_page = strpos($path_site, 'node/add/articulo');
+          $e_page = strpos($path_site, '/edit');
+          // print_r(' a page: ');
+          // print_r($a_page);
+          if($a_page || $e_page){
+            // print_r('entro!');            
+            $query = "SELECT A.nid, A.vid, A.uid, A.type, A.status, A.title, B.field_category_type_value , C.field_category_parent_value 
+                          FROM {node} A 
+                          LEFT JOIN {field_data_field_category_type} B ON A.nid = B.entity_id 
+                          LEFT JOIN {field_data_field_category_parent} C ON A.nid = C.entity_id 
+                          WHERE A.status = 1
+                            AND A.type = :type
+                            AND B.field_category_type_value = 0
+                          ORDER BY A.nid ASC";
+            $a_categories = db_query($query, array(':type' => 'clasificacion_articulos'))->fetchAll();
+            // print_r(' *** a categories: ');
+            // print_r($a_categories);
+
+            $a_categories_array = array();
+            $a_categories_html = '';
+            foreach ($a_categories as $a_category) {
+                $query = "SELECT A.nid, A.vid, A.uid, A.type, A.status, A.title, B.field_category_type_value , C.field_category_parent_value 
+                          FROM {node} A 
+                          LEFT JOIN {field_data_field_category_type} B ON A.nid = B.entity_id 
+                          LEFT JOIN {field_data_field_category_parent} C ON A.nid = C.entity_id 
+                          WHERE A.status = 1
+                            AND A.type = :type
+                            AND B.field_category_type_value = 1
+                            AND C.field_category_parent_value = ".$a_category->nid."
+                          ORDER BY A.nid ASC";
+                $a_subcategories = db_query($query, array(':type' => 'clasificacion_articulos'))->fetchAll();
+                // print_r(' *** a subcategories: ');
+                // print_r($a_subcategories); 
+                $a_category_array = array('category' => $a_category, 'subcategories' => $a_subcategories );
+                array_push($a_categories_array, $a_category_array);
+
+                $a_categories_html .= "<span class='add_category_list' id='category_".$a_category->nid."'><p>".$a_category->title."</p>";
+                foreach ($a_subcategories as $a_subcategory) {
+                    // $a_categories_html .= "<span class='add_subcategory_list category_".$a_category->nid." subcategory_".$a_subcategory->nid."'><p>".$a_subcategory->title."</p></span>";
+                    $a_categories_html .= " <span class='add_category_option '>
+                                              <input class='add_categories_checkbox' id='subcategory_".$a_subcategory->nid."' type='checkbox' name='category' value='".$a_subcategory->nid.",'> 
+                                              <label for='subcategory_".$a_subcategory->nid."'> ".$a_subcategory->title." </label>
+                                            </span>";
+                }
+                $a_categories_html .= "</span>";
+            }
+            
+            // print_r(' *** CATEGORIES ARRAY ');
+            // print_r($a_categories_array);
+
+            // print_r(' *** CATEGORIES HTML ');
+            // print_r($a_categories_html);
+
+          ?>
+              <div id="add_category_list_container_hide"> <?php echo $a_categories_html; ?> </div>
+          <?php
+          }
         }
 
       ?>
