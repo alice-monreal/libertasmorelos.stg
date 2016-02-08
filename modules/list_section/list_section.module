@@ -32,7 +32,7 @@ function list_section_block_view($delta = '') {
   return $block;
 }
 
-function load_list($list_type=18, $index=0){
+function load_list($list_type=88, $index=0){
 
     // Validate next bounch of articles.
     if($index>0){
@@ -41,94 +41,204 @@ function load_list($list_type=18, $index=0){
       $id = '';
     }
 
+    // print_r($list_type);
     // Define items array.
     $items = array();
 
     // Get next bounch of articles.
-    $query = "SELECT A.nid, A.vid, A.uid, A.type, A.status, B.entity_id, B.field_type_value
-              FROM {node} A
-              INNER JOIN {field_data_field_type} B ON A.nid = B.entity_id 
-              WHERE A.type = :type AND B.field_type_value = ".$list_type." ".$id." 
-              ORDER BY A.nid DESC LIMIT 10";
-    $articles = db_query($query, array(':type' => 'articulo'))->fetchAll();
+    if($list_type == 0){
+      $query = "SELECT A.nid, A.vid, A.uid, A.type, A.status, A.title 
+              FROM {node} A 
+              WHERE A.status = 1 
+                AND A.type = :type ".$id." 
+              ORDER BY A.nid DESC ";
+      $articles = db_query($query, array(':type' => 'articulo'))->fetchAll(); 
+    }
+    elseif($list_type == 1){
+      $query = "SELECT A.nid, A.vid, A.uid, A.type, A.status, A.title 
+              FROM {node} A 
+              WHERE A.status = 1 
+                AND A.type = :type ".$id." 
+              ORDER BY A.nid DESC ";
+      $opiniones = db_query($query, array(':type' => 'opinion'))->fetchAll(); 
+      // print_r($list_type);
+      // print_r($opiniones);
+    }
+    else{
+      $query = "SELECT A.nid, A.vid, A.uid, A.type, A.status, A.title, B.entity_id, B.field_categories_value 
+              FROM {node} A 
+              INNER JOIN {field_data_field_categories} B ON A.nid = B.entity_id 
+              WHERE A.status = 1 
+                AND A.type = :type 
+                AND B.field_categories_value like '%".$list_type."%' ".$id." 
+              ORDER BY A.nid DESC ";
+      $articles = db_query($query, array(':type' => 'articulo'))->fetchAll(); 
+    }
     
-    $a_length = sizeof($articles);
-    $index = $articles[$a_length-1]->nid;
+    if($list_type != 1){
+      $a_length = sizeof($articles);
+      $index = $articles[$a_length-1]->nid;
 
-    for($i = 0; $i < 10; $i++){
-      if($articles[$i]->nid){
-        
-        $a_id = $articles[$i]->nid;
+      for($i = 0; $i < $a_length; $i++){
+        if($articles[$i]->nid){
+          
+          $a_id = $articles[$i]->nid;
 
-        // Execute queries to get slide info: image, title and description.
-        if (is_numeric($a_id)){
-          // Define: node id.
-          $d_id = $a_id;
+          // Execute queries to get slide info: image, title and description.
+          if (is_numeric($a_id)){
+            // Define: node id.
+            $d_id = $a_id;
 
-          // Get: Image.
-          $image = db_query("SELECT entity_id, revision_id, field_image_profile_fid 
-              FROM {field_data_field_image_profile} 
-              WHERE entity_id = :eid", array(':eid' => $a_id))->fetchObject();
+            // Get: Image.
+            $image = db_query("SELECT entity_id, revision_id, field_image_profile_fid 
+                FROM {field_data_field_image_profile} 
+                WHERE entity_id = :eid", array(':eid' => $a_id))->fetchObject();
 
-          $i_fid = $image->field_image_profile_fid;
-          if (is_numeric($i_fid)){
-            $image_profile_file = db_query("SELECT fid, uid, filename 
-                FROM {file_managed} 
-                WHERE fid = :fid", array(':fid' => $i_fid))->fetchObject();
-            $image_file = $image_profile_file->filename;
+            $i_fid = $image->field_image_profile_fid;
+            if (is_numeric($i_fid)){
+              $image_profile_file = db_query("SELECT fid, uid, filename 
+                  FROM {file_managed} 
+                  WHERE fid = :fid", array(':fid' => $i_fid))->fetchObject();
+              $image_file = $image_profile_file->filename;
+            }
+            else{
+              $image_file = "gente.png"; //default image 
+            }
+
+            // Get: Title.
+            $query = "SELECT A.nid, A.vid, A.uid, A.type, A.status, A.title, B.entity_id, B.field_title_value 
+              FROM {node} A 
+              INNER JOIN {field_data_field_title} B ON A.nid = B.entity_id 
+              WHERE B.entity_id = :e_id";
+            $title_field = db_query($query, array(':e_id' => $a_id))->fetchObject();
+            $title = $title_field->title;
+            
+            // Get: Description.
+            $query = "SELECT A.nid, A.vid, A.uid, A.type, A.status, B.entity_id, B.field_description_value 
+              FROM {node} A 
+              INNER JOIN {field_data_field_description} B ON A.nid = B.entity_id 
+              WHERE B.entity_id = :e_id";
+            $description_field = db_query($query, array(':e_id' => $a_id))->fetchObject();
+            $description = $description_field->field_description_value;
           }
           else{
-            $image_file = "gente.png"; //default image 
-          }
-
-          // Get: Title.
-          $query = "SELECT A.nid, A.vid, A.uid, A.type, A.status, B.entity_id, B.field_title_value 
-            FROM {node} A 
-            INNER JOIN {field_data_field_title} B ON A.nid = B.entity_id 
-            WHERE B.entity_id = :e_id";
-          $title_field = db_query($query, array(':e_id' => $a_id))->fetchObject();
-          $title = $title_field->field_title_value;
-          
-          // Get: Description.
-          $query = "SELECT A.nid, A.vid, A.uid, A.type, A.status, B.entity_id, B.field_description_value 
-            FROM {node} A 
-            INNER JOIN {field_data_field_description} B ON A.nid = B.entity_id 
-            WHERE B.entity_id = :e_id";
-          $description_field = db_query($query, array(':e_id' => $a_id))->fetchObject();
-          $description = $description_field->field_description_value;
+            $d_id = 6;
+            $image_file = ""; //default image 
+            $title = ""; //default title
+            $description = ""; //default description
+          }        
         }
         else{
           $d_id = 6;
-          $image_file = ""; //default image 
-          $title = ""; //default title
-          $description = ""; //default description
-        }        
-      }
-      else{
-        $d_id = 6;
-        $image_file = "";
-        $title = "";
-        $description = "";
-      }
+          $image_file = "";
+          $title = "";
+          $description = "";
+        }
 
-      $items[$i]->id = $d_id;
-      $items[$i]->num = $i;
+        $items[$i]->id = $d_id;
+        $items[$i]->num = $i;
 
-      $image_url = '"'.$base_url.'/sites/default/files/'.$image_file.'"';
-      $items[$i]->image_name = $image_file;
-      $items[$i]->image_url  = $image_url;
+        $image_url = '"'.$base_url.'/sites/default/files/'.$image_file.'"';
+        $items[$i]->image_name = $image_file;
+        $items[$i]->image_url  = $image_url;
+        
+        $items[$i]->title = $title;
+
+        $items[$i]->description = $description;
+      }
       
-      $items[$i]->title = $title;
+    }else{
+      $a_length = sizeof($opiniones);
+      $index = $opiniones[$a_length-1]->nid;
 
-      $items[$i]->description = $description;
+      for($i = 0; $i < $a_length; $i++){
+        if($opiniones[$i]->nid){
+          
+          $a_id = $opiniones[$i]->nid;
+
+          // Execute queries to get slide info: image, title and description.
+          if (is_numeric($a_id)){
+            // Define: node id.
+            $d_id = $a_id;
+
+            // Get: Image.
+            $image = db_query("SELECT entity_id, revision_id, field_opinion_profile_fid 
+                FROM {field_data_field_opinion_profile} 
+                WHERE entity_id = :eid", array(':eid' => $a_id))->fetchObject();
+
+            $i_fid = $image->field_opinion_profile_fid;
+            if (is_numeric($i_fid)){
+              $image_profile_file = db_query("SELECT fid, uid, filename 
+                  FROM {file_managed} 
+                  WHERE fid = :fid", array(':fid' => $i_fid))->fetchObject();
+              $image_file = $image_profile_file->filename;
+            }
+            else{
+              $image_file = "gente.png"; //default image 
+            }
+
+            // Get: Title.
+            $query = "SELECT A.nid, A.vid, A.uid, A.type, A.status, A.title, B.entity_id, B.field_opinion_title_value 
+              FROM {node} A 
+              INNER JOIN {field_data_field_opinion_title} B ON A.nid = B.entity_id 
+              WHERE B.entity_id = :e_id";
+            $title_field = db_query($query, array(':e_id' => $a_id))->fetchObject();
+            $title = $title_field->title;
+            
+            // Get: Description.
+            $query = "SELECT A.nid, A.vid, A.uid, A.type, A.status, B.entity_id, B.field_opinion_summary_value 
+              FROM {node} A 
+              INNER JOIN {field_data_field_opinion_summary} B ON A.nid = B.entity_id 
+              WHERE B.entity_id = :e_id";
+            $description_field = db_query($query, array(':e_id' => $a_id))->fetchObject();
+            $description = $description_field->field_opinion_summary_value;
+          }
+          else{
+            $d_id = 6;
+            $image_file = ""; //default image 
+            $title = ""; //default title
+            $description = ""; //default description
+          }        
+        }
+        else{
+          $d_id = 6;
+          $image_file = "";
+          $title = "";
+          $description = "";
+        }
+
+        $items[$i]->id = $d_id;
+        $items[$i]->num = $i;
+
+        $image_url = '"'.$base_url.'/sites/default/files/'.$image_file.'"';
+        $items[$i]->image_name = $image_file;
+        $items[$i]->image_url  = $image_url;
+        
+        $items[$i]->title = $title;
+
+        $items[$i]->description = $description;
+      }
+      
     }
 
+    // print_r($items);
+
     //Get title text.
-    $query = "SELECT A.nid, A.vid, A.uid, A.type, A.status, A.title
+    if($list_type > 1){
+      $query = "SELECT A.nid, A.vid, A.uid, A.type, A.status, A.title
               FROM {node} A
               WHERE A.nid = :id AND A.type = :type 
               ORDER BY A.nid DESC LIMIT 10";
-    $type = db_query($query, array(':type' => 'clasificacion_de_articulos', ':id' => $list_type))->fetchAll();
+      $type = db_query($query, array(':type' => 'clasificacion_articulos', ':id' => $list_type))->fetchAll();
+      $type = $type[0]->title; 
+      // $list['type'][0]->title 
+    }
+    elseif ($list_type == 1){
+      $type = "Opini&oacute;n"; 
+    }
+    else{
+      $type = "Noticias"; 
+    }
     
     $result = array('items' => $items, 'index' => $index, 'type' => $type);
     return $result;

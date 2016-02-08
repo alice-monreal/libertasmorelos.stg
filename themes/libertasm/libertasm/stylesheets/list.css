@@ -54,9 +54,9 @@
   display: block;
   position: relative;
   float: left;
-  width: 355px;
-  height: 129px;
-  margin: 0 0 50px;
+  width: auto;
+  height: 130px;
+  margin: 25px 25px 25px;
   padding: 0;
   cursor: pointer;
 }
@@ -65,8 +65,8 @@
   display: block;
   position: relative;
   float: left;
-  width: 150px;
-  height: 115px;
+  width: 125px;
+  height: 100px;
   margin: 0;
   background-repeat: no-repeat;
   background-size: cover;
@@ -77,7 +77,7 @@
 .lista_section .lista_container .lista_content .lista_content_info {
   display: block;
   position: relative;
-  float: right;
+  float: left;
   width: 190px;
   max-height: 122px;
   margin: 0 0 0 10px;
@@ -138,8 +138,8 @@
   clear: both;
   float: right;
   width: 350px;
-  height: 340px;
-  margin: 0;
+  height: 345px;
+  margin: 0 0 13px;
   padding: 0;
   background-color: #ececeb;
   border: #d7d4d4 1px solid;

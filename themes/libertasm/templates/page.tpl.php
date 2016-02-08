@@ -139,21 +139,47 @@ $path_site = $_SERVER['REQUEST_URI'];
 
     <?php
 
-      $cat_query = "SELECT A.nid, A.vid, A.uid, A.type, A.status, A.title 
-                    FROM {node} A 
-                    WHERE A.type = :type
-                    ORDER BY A.nid ASC";
-      $categories = db_query($cat_query, array(':type' => 'clasificacion_de_articulos'))->fetchAll();
+     $query = "SELECT A.nid, A.vid, A.uid, A.type, A.status, A.title, B.field_category_type_value  
+                        FROM {node} A 
+                        LEFT JOIN {field_data_field_category_type} B ON A.nid = B.entity_id   
+                        WHERE A.status = 1
+                          AND A.type = :type
+                          AND B.field_category_type_value = 0
+                        ORDER BY A.nid ASC";
+      $categories = db_query($query, array(':type' => 'clasificacion_articulos'))->fetchAll();
+          
+
+      // $cat_query = "SELECT A.nid, A.vid, A.uid, A.type, A.status, A.title 
+      //               FROM {node} A 
+      //               WHERE A.type = :type
+      //               ORDER BY A.nid ASC";
+      // $categories = db_query($cat_query, array(':type' => 'clasificacion_articulos'))->fetchAll();
       // print_r($categories);
 
       $categories_list = '';
+      $categories_links = '';
       foreach ($categories as $cat ) {
-         // print_r($cat->title);
-          $categories_list .= $cat->title.',';
+
+        $query = "SELECT A.nid, A.vid, A.uid, A.type, A.status, A.title, B.field_section_value 
+                        FROM {node} A 
+                        INNER JOIN {field_data_field_section} B ON A.nid = B.entity_id 
+                        WHERE A.status = 1
+                          AND B.field_section_value = :section 
+                        ORDER BY A.nid ASC LIMIT 1";
+        $lists = db_query($query, array(':section' => $cat->nid))->fetchAll();
+        $lists_size = sizeof($lists);
+        if($lists_size > 0){
+          $categories_links .= $lists[0]->nid.',';
+        }else{
+          $categories_links .= '-,';
+        }
+
+        $categories_list .= $cat->title.',';
       }
     ?>
 
     <span class="categories_list"> <?php echo $categories_list; ?> </span>
+    <span class="categories_links"> <?php echo $categories_links; ?> </span>
 
     <!-- <?php print_r ($main_menu); ?> -->
 
@@ -619,7 +645,7 @@ $path_site = $_SERVER['REQUEST_URI'];
 
           // print render($page['content']['list_section_list']['#markup']);
           ?>
-            <p class="list_title"> Noticias <?php echo $list['type'][0]->title ?> </p>
+            <p class="list_title"> <?php echo $list['type'] ?> </p>
 
             <div class='lista_section'>
               <div class='lista_title'> 
@@ -648,7 +674,7 @@ $path_site = $_SERVER['REQUEST_URI'];
               }
             }
           ?>
-                <p id="remote-content-wrapper" class='lista_content_see_more'> ver m&aacute;s... </p>
+                <!-- <p id="remote-content-wrapper" class='lista_content_see_more'> ver m&aacute;s... </p> -->
               </div>
             </div>
 

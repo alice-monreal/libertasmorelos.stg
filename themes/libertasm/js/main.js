@@ -139,14 +139,20 @@ jQuery( document ).ready(function( $ ) {
 	var categories = $('.categories_list').html(),
 		categories_array  = categories.split(","),
 		categories_length = (categories_array.length)-1;
+	var categories_links = $('.categories_links').html(),
+		categories_links_array  = categories_links.split(","),
+		categories_links_length = (categories_links_array.length)-1;
 		
 		categories_array.splice(categories_length, 1);
-		// categories_array.splice(0, 1);
+		categories_links_array.splice(categories_links_length, 1);
+
+		// console.debug('* categories_links: ', categories_links);
 
 	$('.menu-536').append( "<div class='submenu'></div>" );
-	for (var i = categories_array.length - 1; i >= 0; i--) {
-		categories_array[i];
-		$('.menu-536 .submenu').append( "<div class='opt'>"+ categories_array[i] +"</div>" );
+	for (var i = 0; i < categories_array.length; i++) {
+		categories_links_array[i] = (categories_links_array[i].indexOf('-') != -1) ? '/inicio' : '/node/'+categories_links_array[i];
+		var categories_link = categories_links_array[i].replace(" ", "");
+		$('.menu-536 .submenu').append( "<a class='a_opt' href='"+ categories_link +"'><div class='opt'>"+ categories_array[i] +"</div></a>" );
 	}
 
 	$('.menu-536').hover(function(){
@@ -179,15 +185,21 @@ jQuery( document ).ready(function( $ ) {
 	//Article
 
 	// Date field
-	var d = new Date(); 
+	var d = new Date();
+	var month = parseInt(d.getMonth()) + 1;
+
 	var curr_date = (d.getDate() < 10) ? '0'+d.getDate() : d.getDate();
-	var curr_month = (d.getMonth() < 10) ? '0'+d.getMonth() : d.getMonth();
+	var curr_month = (month < 10) ? '0'+month : month;
 	var curr_year = d.getFullYear();
 
 	if(url.indexOf("node/add/articulo") != -1){
-		
 		// Current date in date field
 		var art_date = $('#edit-field-date-und-0-value');
+		art_date.val(curr_month + "/" + curr_date + "/" + curr_year);
+	}
+	if(url.indexOf("node/add/opinion") != -1){
+		// Current date in date field
+		var art_date = $('#edit-field-opinion-date-und-0-value');
 		art_date.val(curr_month + "/" + curr_date + "/" + curr_year);
 	}
 
@@ -201,7 +213,7 @@ jQuery( document ).ready(function( $ ) {
 		$('#edit-field-type').css({"opacity":"0","height":"0"});
 		// Disable 'categories' field.
 		// $('#edit-field-categories-und-0-value').attr('disabled','disabled');
-		// $('#edit-field-categories-und-0-value').css({"opacity":"0","height":"0"});
+		$('#edit-field-categories-und-0-value').css({"opacity":"0","height":"0"});
 
 		// Categories set checkboxes and their functionality to set on category input.
 		var categories_html = '',
@@ -239,7 +251,7 @@ jQuery( document ).ready(function( $ ) {
 		// Disable 'home display' field.
 		// $('#edit-field-home-display-und-0-value').attr('disabled','disabled');
 		$('#edit-field-home-display-und-0-value').css({"opacity":"0","height":"0"});
-		// $('#edit-field-opinion-home-display-und-0-value').css({"opacity":"0","height":"0"});
+		$('#edit-field-opinion-home-display-und-0-value').css({"opacity":"0","height":"0"});
 			
 		// Home display set radios and their functionality to set on home display input.
 		var display_home_radio = '<span><input class="add_home_display_radio" id="home_display_1" type="radio" name="home_display" value="1"><label for="home_display_1"> Si </label></span>';
@@ -262,7 +274,7 @@ jQuery( document ).ready(function( $ ) {
 		// Disable 'cover position' field.
 		// $('#edit-field-cover-position-und-0-value').attr('disabled','disabled');
 		$('#edit-field-cover-position-und-0-value').css({"opacity":"0","height":"0"});
-		// $('#edit-field-opinion-cover-position-und-0-value').css({"opacity":"0","height":"0"});
+		$('#edit-field-opinion-cover-position-und-0-value').css({"opacity":"0","height":"0"});
 		
 		// Cover position set radios and their functionality to set on cover position input.
 		var cover_position_radio = '<span><input class="add_cover_position_radio" id="cover_position_top" type="radio" name="cover_position" value="top"><label for="cover_position_top"> Top </label></span>';
@@ -305,5 +317,19 @@ jQuery( document ).ready(function( $ ) {
 		$("input#home_display_"+ home_display_field_value_o +"[name='home_display']").attr('checked', true);
 		$("input#cover_position_"+ cover_position_field_value_o +"[name='cover_position']").attr('checked', true);
 	}
+
+	console.debug('edit-field-image-profile-und-0-upload: ', $('#edit-field-image-profile-und-0-upload').val());
+	//edit-field-image-profile-und-0-upload-button
+	console.debug('edit-field-image-profile-und-0-upload-button: ', $('#edit-field-image-profile-und-0-upload-button'));
+	
+	$('#edit-field-image-profile-und-0-upload').click(function(){
+		console.debug('upload input clicked: ', $(this));
+	});
+	$('#edit-field-image-profile-und-0-upload-button').click(function(){
+		console.debug('upload button clicked: ', $(this));
+	});
+
+
+
 	
 });
