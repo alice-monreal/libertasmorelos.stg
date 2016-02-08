@@ -180,7 +180,7 @@ function opiniones_section_block_view($delta = '') {
           <div class='opiniones_fix_section'>
             <div class='opiniones_fix_image' style='background-image: url(".$opiniones_fijas[1]->image_url.");'> </div>
             <div class='opiniones_fix_info'>
-              <p class='opiniones_fix_title'> La ley de Herodes por ".$opiniones_fijas[2]->author." </p>
+              <p class='opiniones_fix_title'> La ley de Herodes por ".$opiniones_fijas[1]->author." </p>
               <p class='opiniones_fix_description'> ".$opiniones_fijas[1]->title."  &nbsp;&nbsp;&nbsp;  Leer m&aacute;s... </p>
             </div>
           </div>

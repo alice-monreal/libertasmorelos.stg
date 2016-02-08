@@ -147,7 +147,7 @@ jQuery( document ).ready(function( $ ) {
 	for (var i = categories_array.length - 1; i >= 0; i--) {
 		categories_array[i];
 		$('.menu-536 .submenu').append( "<div class='opt'>"+ categories_array[i] +"</div>" );
-	};
+	}
 
 	$('.menu-536').hover(function(){
 		// console.debug('submenu hover in');
@@ -191,7 +191,7 @@ jQuery( document ).ready(function( $ ) {
 		art_date.val(curr_month + "/" + curr_date + "/" + curr_year);
 	}
 
-	if(url.indexOf("node/add/articulo") != -1 || url.indexOf("/edit") != -1){
+	if(url.indexOf("node/add/articulo") != -1 || url.indexOf("node/add/opinion") != -1 || url.indexOf("/edit") != -1){
 
 		//Add and edit
 
@@ -239,17 +239,21 @@ jQuery( document ).ready(function( $ ) {
 		// Disable 'home display' field.
 		// $('#edit-field-home-display-und-0-value').attr('disabled','disabled');
 		$('#edit-field-home-display-und-0-value').css({"opacity":"0","height":"0"});
+		// $('#edit-field-opinion-home-display-und-0-value').css({"opacity":"0","height":"0"});
 			
 		// Home display set radios and their functionality to set on home display input.
 		var display_home_radio = '<span><input class="add_home_display_radio" id="home_display_1" type="radio" name="home_display" value="1"><label for="home_display_1"> Si </label></span>';
 		display_home_radio += '<span><input class="add_home_display_radio" id="home_display_0" type="radio" name="home_display" value="0"><label for="home_display_0"> No </label></span>';
 		
 		$('#edit-field-home-display').append('<div id="add_display_home_container"></div>');
+		$('#edit-field-opinion-home-display').append('<div id="add_display_home_container"></div>');
+		
 		$('#add_display_home_container').append(display_home_radio);
 
 		$("input.add_home_display_radio[type='radio']").change(function() {
 			// console.debug('home_display radio value: ', $(this).val());
 			$('#edit-field-home-display-und-0-value').val($(this).val());
+			$('#edit-field-opinion-home-display-und-0-value').val($(this).val());
 		}); 
 
 
@@ -258,6 +262,7 @@ jQuery( document ).ready(function( $ ) {
 		// Disable 'cover position' field.
 		// $('#edit-field-cover-position-und-0-value').attr('disabled','disabled');
 		$('#edit-field-cover-position-und-0-value').css({"opacity":"0","height":"0"});
+		// $('#edit-field-opinion-cover-position-und-0-value').css({"opacity":"0","height":"0"});
 		
 		// Cover position set radios and their functionality to set on cover position input.
 		var cover_position_radio = '<span><input class="add_cover_position_radio" id="cover_position_top" type="radio" name="cover_position" value="top"><label for="cover_position_top"> Top </label></span>';
@@ -265,11 +270,14 @@ jQuery( document ).ready(function( $ ) {
 		cover_position_radio += '<span><input class="add_cover_position_radio" id="cover_position_bottom" type="radio" name="cover_position" value="bottom"><label for="cover_position_bottom"> Bottom </label></span>';
 		
 		$('#edit-field-cover-position').append('<div id="add_cover_position_container"></div>');
+		$('#edit-field-opinion-cover-position').append('<div id="add_cover_position_container"></div>');
+
 		$('#add_cover_position_container').append(cover_position_radio);
 
 		$("input.add_cover_position_radio[type='radio']").change(function() {
 			// console.debug('cover_position radio value: ', $(this).val());
 			$('#edit-field-cover-position-und-0-value').val($(this).val());
+			$('#edit-field-opinion-cover-position-und-0-value').val($(this).val());
 		});
 
 
@@ -279,17 +287,23 @@ jQuery( document ).ready(function( $ ) {
 		var home_display_field_value = $('#edit-field-home-display-und-0-value').val();
 		var cover_position_field_value = $('#edit-field-cover-position-und-0-value').val();
 		// console.debug('cover_position_field_value: ', cover_position_field_value);
+		var home_display_field_value_o = $('#edit-field-opinion-home-display-und-0-value').val();
+		var cover_position_field_value_o = $('#edit-field-opinion-cover-position-und-0-value').val();
 		
-		categories_field_array = categories_field_value.split(",");
-		// console.debug('* categories_field_array: ', categories_field_array);
-		for (var i = 0; i < categories_field_array.length; i++){
-			// console.debug('categories_field_array[i]: ', categories_field_array[i]);
-			$("input#subcategory_"+ categories_field_array[i] +"[type='checkbox']").attr('checked', true);
-		};
+		if(categories_field_value){
+			categories_field_array = categories_field_value.split(",");
+			// console.debug('* categories_field_array: ', categories_field_array);
+			for (var i = 0; i < categories_field_array.length; i++){
+				// console.debug('categories_field_array[i]: ', categories_field_array[i]);
+				$("input#subcategory_"+ categories_field_array[i] +"[type='checkbox']").attr('checked', true);
+			}
+		}
 
 		$("input#home_display_"+ home_display_field_value +"[name='home_display']").attr('checked', true);
 		$("input#cover_position_"+ cover_position_field_value +"[name='cover_position']").attr('checked', true);
 
+		$("input#home_display_"+ home_display_field_value_o +"[name='home_display']").attr('checked', true);
+		$("input#cover_position_"+ cover_position_field_value_o +"[name='cover_position']").attr('checked', true);
 	}
 	
 });
